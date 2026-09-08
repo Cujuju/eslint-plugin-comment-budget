@@ -1,7 +1,7 @@
-/**
- * Where the prose is supposed to go. Every project answers differently, so a
- * repo names its own in `COMMENT_BUDGET_REDIRECT`, in CI and in its hooks.
- */
-const DEFAULT_REDIRECT = 'the commit message or a decision record'
+/** Where the prose is supposed to go, named in every message. */
+export const DEFAULT_REDIRECT = 'the commit message or a decision record'
 
-export const REDIRECT = process.env['COMMENT_BUDGET_REDIRECT'] ?? DEFAULT_REDIRECT
+/** The policy file is the place to say it; the env var stays as an override. */
+export function redirectOf(policy: { redirect?: string }): string {
+  return policy.redirect ?? process.env['COMMENT_BUDGET_REDIRECT'] ?? DEFAULT_REDIRECT
+}

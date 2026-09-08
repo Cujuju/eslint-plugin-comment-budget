@@ -12,7 +12,7 @@ next reader trusts it anyway.
 Not on npm. Consume it straight from GitHub:
 
 ```sh
-pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.2.0
+pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.3.0
 ```
 
 It builds itself on install (`prepare` runs `tsc`), so nothing is checked in
@@ -133,6 +133,7 @@ rule and the CLI read one source and cannot disagree. Every field is optional.
 ```json
 {
   "wordCap": 30,
+  "redirect": "docs/decisions/<arc>.md",
   "patterns": ["iso-date", "owner", "history", "measurement", "was-now", "digit-row"],
   "ignore": ["**/node_modules/**", "**/dist/**", "**/vendor/**", "**/.*/**", "**/*.d.ts"],
   "linted": ["**/*.ts", "**/*.tsx"],
@@ -146,14 +147,14 @@ rule and the CLI read one source and cannot disagree. Every field is optional.
 | `patterns` | which banned patterns run. Default: all of them. `[]` disables the lot and leaves only the cap. |
 | `ignore` | globs the budget never covers. `**` spans directories, `*` and `?` stay inside one: `**/dist*/**`, `release/**`, `packages/*/coverage/**`, `**/*.d.ts`, or an exact path. A pattern ending `/**` prunes that directory before the walk descends. |
 | `linted` | globs the budget covers. Default `["**/*.ts", "**/*.tsx"]`. |
+| `redirect` | where the prose should go, named in every message. Defaults to "the commit message or a decision record". |
 | `exempt` | files that predate adoption. Written by `comment-budget-seed`. |
 
 `comment-budget-seed` rewrites `exempt` and hands the rest of the file back
 untouched.
 
-| | |
-|---|---|
-| `COMMENT_BUDGET_REDIRECT` | where the prose should go, named in every message. Defaults to "the commit message or a decision record". |
+`COMMENT_BUDGET_REDIRECT` overrides `redirect` from the environment, for a
+repo that would rather not commit the value.
 
 A word on `wordCap`: pick one and leave it alone. A cap you renegotiate per
 comment is not a cap. But that is advice for your repo to take, not a decision

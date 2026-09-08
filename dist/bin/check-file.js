@@ -5,16 +5,18 @@ import { analyze } from "../src/analyze.js";
 import { budgetFor } from "../src/baseline.js";
 import { commentsOf } from "../src/comments.js";
 import { policyFrom } from "../src/policy.js";
-import { REDIRECT } from "../src/redirect.js";
+import { redirectOf } from "../src/redirect.js";
 import { isLintedPath } from "../src/targets.js";
 /**
  * One file, no eslint startup and no exemption list: whoever touches a file
  * brings it to the cap. Prints nothing when the file is clean.
  */
+let redirect = '';
 function report(path) {
     const absolute = isAbsolute(path) ? path : resolve(process.cwd(), path);
     const found = budgetFor(dirname(absolute));
     const policy = policyFrom(found.budget);
+    redirect = redirectOf(found.budget);
     const key = relative(found.root, absolute).split(sep).join('/');
     if (!isLintedPath(key.startsWith('..') ? absolute.split(sep).pop() : key, policy))
         return [];
@@ -48,6 +50,6 @@ catch {
     process.exit(0);
 }
 if (lines.length > 0) {
-    process.stderr.write(`Comment budget — put the reasoning in ${REDIRECT}, not in the source:\n${lines.map((line) => `  ${line}`).join('\n')}\n`);
+    process.stderr.write(`Comment budget — put the reasoning in ${redirect}, not in the source:\n${lines.map((line) => `  ${line}`).join('\n')}\n`);
     process.exit(2);
 }

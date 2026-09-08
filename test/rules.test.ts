@@ -108,3 +108,19 @@ describe('budget discovery', () => {
     expect(findBudgetFile('/')).toBeUndefined()
   })
 })
+
+describe('redirect', () => {
+  it('names the repo policy target in the message', () => {
+    tester.run('comment-budget', commentBudget, {
+      valid: [],
+      invalid: [
+        {
+          code: `${LONG}\n${CODE}\n`,
+          filename: '/repo/src/a.ts',
+          options: [{ budget: { exempt: [], redirect: 'docs/decisions/<arc>.md' }, root: '/repo', touched: [] }],
+          errors: [{ message: /docs\/decisions\/<arc>\.md/ }],
+        },
+      ],
+    })
+  })
+})

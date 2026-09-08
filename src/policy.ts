@@ -1,4 +1,5 @@
 import { BANNED_PATTERN_IDS } from './patterns.ts'
+import { DEFAULT_REDIRECT } from './redirect.ts'
 
 /**
  * What this repo has decided. It lives in `.comment-budget.json` so the rule
@@ -6,6 +7,7 @@ import { BANNED_PATTERN_IDS } from './patterns.ts'
  */
 export type Policy = {
   wordCap: number
+  redirect: string
   patterns: string[]
   ignore: string[]
   linted: string[]
@@ -27,6 +29,7 @@ export const DEFAULT_LINTED = ['**/*.ts', '**/*.tsx']
 
 export const DEFAULT_POLICY: Policy = {
   wordCap: DEFAULT_WORD_CAP,
+  redirect: DEFAULT_REDIRECT,
   patterns: [...BANNED_PATTERN_IDS],
   ignore: [...DEFAULT_IGNORED],
   linted: [...DEFAULT_LINTED],
@@ -37,6 +40,7 @@ export type PolicyInput = Partial<Policy>
 export function policyFrom(input: PolicyInput | undefined): Policy {
   return {
     wordCap: input?.wordCap ?? DEFAULT_POLICY.wordCap,
+    redirect: input?.redirect ?? DEFAULT_POLICY.redirect,
     patterns: input?.patterns ?? DEFAULT_POLICY.patterns,
     ignore: input?.ignore ?? DEFAULT_POLICY.ignore,
     linted: input?.linted ?? DEFAULT_POLICY.linted,

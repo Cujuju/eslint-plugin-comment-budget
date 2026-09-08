@@ -4,6 +4,7 @@
  */
 export type Policy = {
     wordCap: number;
+    redirect: string;
     patterns: string[];
     ignore: string[];
     linted: string[];

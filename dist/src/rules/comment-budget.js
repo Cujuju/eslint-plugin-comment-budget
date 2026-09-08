@@ -1,5 +1,5 @@
 import { isExempt, OPTIONS_SCHEMA, resolve, violationsOf } from "../context.js";
-import { REDIRECT } from "../redirect.js";
+import { redirectOf } from "../redirect.js";
 export const commentBudget = {
     meta: {
         type: 'suggestion',
@@ -18,7 +18,7 @@ export const commentBudget = {
                 const resolved = resolve(context);
                 if (isExempt(resolved))
                     return;
-                const redirect = REDIRECT;
+                const redirect = redirectOf(resolved.budget);
                 const cap = String(resolved.policy.wordCap);
                 for (const violation of violationsOf(context, resolved)) {
                     const loc = {

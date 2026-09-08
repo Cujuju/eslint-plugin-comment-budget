@@ -1,6 +1,6 @@
 import type { Rule } from 'eslint'
 import { isExempt, OPTIONS_SCHEMA, resolve, violationsOf } from '../context.ts'
-import { REDIRECT } from '../redirect.ts'
+import { redirectOf } from '../redirect.ts'
 
 export const commentBudget: Rule.RuleModule = {
   meta: {
@@ -20,7 +20,7 @@ export const commentBudget: Rule.RuleModule = {
       'Program:exit'(): void {
         const resolved = resolve(context)
         if (isExempt(resolved)) return
-        const redirect = REDIRECT
+        const redirect = redirectOf(resolved.budget)
         const cap = String(resolved.policy.wordCap)
 
         for (const violation of violationsOf(context, resolved)) {

@@ -5,17 +5,20 @@ import { analyze } from '../src/analyze.ts'
 import { budgetFor } from '../src/baseline.ts'
 import { commentsOf } from '../src/comments.ts'
 import { policyFrom } from '../src/policy.ts'
-import { REDIRECT } from '../src/redirect.ts'
+import { redirectOf } from '../src/redirect.ts'
 import { isLintedPath } from '../src/targets.ts'
 
 /**
  * One file, no eslint startup and no exemption list: whoever touches a file
  * brings it to the cap. Prints nothing when the file is clean.
  */
+let redirect = ''
+
 function report(path: string): string[] {
   const absolute = isAbsolute(path) ? path : resolve(process.cwd(), path)
   const found = budgetFor(dirname(absolute))
   const policy = policyFrom(found.budget)
+  redirect = redirectOf(found.budget)
   const key = relative(found.root, absolute).split(sep).join('/')
   if (!isLintedPath(key.startsWith('..') ? absolute.split(sep).pop()! : key, policy)) return []
 
@@ -52,7 +55,7 @@ try {
 
 if (lines.length > 0) {
   process.stderr.write(
-    `Comment budget — put the reasoning in ${REDIRECT}, not in the source:\n${lines.map((line) => `  ${line}`).join('\n')}\n`,
+    `Comment budget — put the reasoning in ${redirect}, not in the source:\n${lines.map((line) => `  ${line}`).join('\n')}\n`,
   )
   process.exit(2)
 }
