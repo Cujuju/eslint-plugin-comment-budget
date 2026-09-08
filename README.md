@@ -12,7 +12,7 @@ next reader trusts it anyway.
 Not on npm. Consume it straight from GitHub:
 
 ```sh
-pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.3.0
+pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.4.0
 ```
 
 It builds itself on install (`prepare` runs `tsc`), so nothing is checked in

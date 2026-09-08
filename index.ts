@@ -8,6 +8,6 @@ export { DEFAULT_IGNORED, DEFAULT_LINTED, DEFAULT_WORD_CAP, type Policy } from '
 
 export const rules = { 'comment-budget': commentBudget }
 
-export const plugin = { meta: { name: 'eslint-plugin-comment-budget', version: '2.3.1' }, rules }
+export const plugin = { meta: { name: 'eslint-plugin-comment-budget', version: '2.4.0' }, rules }
 
 export default plugin

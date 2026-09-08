@@ -22,6 +22,7 @@ export const DEFAULT_IGNORED = [
   '**/build/**',
   '**/out/**',
   '**/.*/**',
+  '**/.*',
   '**/*.d.ts',
 ]
 

@@ -8,6 +8,7 @@ export const DEFAULT_IGNORED = [
     '**/build/**',
     '**/out/**',
     '**/.*/**',
+    '**/.*',
     '**/*.d.ts',
 ];
 export const DEFAULT_LINTED = ['**/*.ts', '**/*.tsx'];

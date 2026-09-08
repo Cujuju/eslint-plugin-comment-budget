@@ -24,6 +24,13 @@ describe('ignore globs', () => {
     it(`matches ${path}`, () => expect(matcher.matches(path)).toBe(true))
   }
 
+  const hidden = matcherFor(['**/.*/**', '**/.*'])
+  it('covers a hidden directory and a hidden file alike', () => {
+    expect(hidden.matches('.claude/x.ts')).toBe(true)
+    expect(hidden.matches('src/.old-models.ts')).toBe(true)
+    expect(hidden.matches('src/models.ts')).toBe(false)
+  })
+
   const spared = ['packages/client/src/app.ts', 'releases/notes.ts', 'packages/client/src/dist.ts']
   for (const path of spared) {
     it(`spares ${path}`, () => expect(matcher.matches(path)).toBe(false))
