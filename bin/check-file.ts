@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs'
-import { basename, dirname, isAbsolute, resolve } from 'node:path'
+import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { analyze } from '../src/analyze.ts'
 import { budgetFor } from '../src/baseline.ts'
 import { commentsOf } from '../src/comments.ts'
 import { policyFrom } from '../src/policy.ts'
 import { REDIRECT } from '../src/redirect.ts'
-import { isLintedFile } from '../src/targets.ts'
+import { isLintedPath } from '../src/targets.ts'
 
 /**
  * One file, no eslint startup and no exemption list: whoever touches a file
@@ -14,8 +14,10 @@ import { isLintedFile } from '../src/targets.ts'
  */
 function report(path: string): string[] {
   const absolute = isAbsolute(path) ? path : resolve(process.cwd(), path)
-  const policy = policyFrom(budgetFor(dirname(absolute)).budget)
-  if (!isLintedFile(basename(absolute), policy)) return []
+  const found = budgetFor(dirname(absolute))
+  const policy = policyFrom(found.budget)
+  const key = relative(found.root, absolute).split(sep).join('/')
+  if (!isLintedPath(key.startsWith('..') ? absolute.split(sep).pop()! : key, policy)) return []
 
   const source = readFileSync(absolute, 'utf8')
   return analyze(source, commentsOf(source, absolute), policy).map((violation) =>

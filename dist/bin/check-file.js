@@ -1,20 +1,22 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
-import { basename, dirname, isAbsolute, resolve } from 'node:path';
+import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { analyze } from "../src/analyze.js";
 import { budgetFor } from "../src/baseline.js";
 import { commentsOf } from "../src/comments.js";
 import { policyFrom } from "../src/policy.js";
 import { REDIRECT } from "../src/redirect.js";
-import { isLintedFile } from "../src/targets.js";
+import { isLintedPath } from "../src/targets.js";
 /**
  * One file, no eslint startup and no exemption list: whoever touches a file
  * brings it to the cap. Prints nothing when the file is clean.
  */
 function report(path) {
     const absolute = isAbsolute(path) ? path : resolve(process.cwd(), path);
-    const policy = policyFrom(budgetFor(dirname(absolute)).budget);
-    if (!isLintedFile(basename(absolute), policy))
+    const found = budgetFor(dirname(absolute));
+    const policy = policyFrom(found.budget);
+    const key = relative(found.root, absolute).split(sep).join('/');
+    if (!isLintedPath(key.startsWith('..') ? absolute.split(sep).pop() : key, policy))
         return [];
     const source = readFileSync(absolute, 'utf8');
     return analyze(source, commentsOf(source, absolute), policy).map((violation) => violation.kind === 'over-cap'

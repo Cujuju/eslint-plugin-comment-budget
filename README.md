@@ -12,7 +12,7 @@ next reader trusts it anyway.
 Not on npm. Consume it straight from GitHub:
 
 ```sh
-pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.0.0
+pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.1.0
 ```
 
 It builds itself on install (`prepare` runs `tsc`), so nothing is checked in
@@ -137,8 +137,8 @@ rule and the CLI read one source and cannot disagree. Every field is optional.
 |---|---|
 | `wordCap` | words allowed in one comment block. Default 30. |
 | `patterns` | which banned patterns run. Default: all of them. `[]` disables the lot and leaves only the cap. |
-| `ignore` | directories and suffixes the budget never covers. `**/name/**` and `**/*.ext` forms. |
-| `linted` | which files it covers. `**/*.ext` form. |
+| `ignore` | globs the budget never covers. `**` spans directories, `*` and `?` stay inside one: `**/dist*/**`, `release/**`, `packages/*/coverage/**`, `**/*.d.ts`, or an exact path. A pattern ending `/**` prunes that directory before the walk descends. |
+| `linted` | globs the budget covers. Default `["**/*.ts", "**/*.tsx"]`. |
 | `exempt` | files that predate adoption. Written by `comment-budget-seed`. |
 
 `comment-budget-seed` rewrites `exempt` and hands the rest of the file back
