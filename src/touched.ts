@@ -1,27 +1,35 @@
 import { execFileSync } from 'node:child_process'
 
 /**
- * Files that differ from the last commit, staged or not, plus files git has
- * never seen. Touching a file is what withdraws its exemption.
+ * Whether git sees a file as changed since the last commit — modified, staged
+ * or never tracked. Touching a file is what withdraws its exemption.
  */
-const GIT_TIMEOUT_MS = 5_000
+const GIT_TIMEOUT_MS = 10_000
 
-/** An editor keeps one lint process alive for hours, so the answer must go stale. */
-const CACHE_MS = 2_000
+/**
+ * Asking about one file costs a stat; asking about the tree costs a full walk,
+ * which on a network or drive-mounted checkout is seconds. An editor asks about
+ * a handful of files and should pay the former. `eslint .` asks about hundreds
+ * and should pay the latter once. Switch over when the singles stop being cheaper.
+ */
+const SINGLE_PATH_BUDGET = 25
 
-type CacheEntry = { at: number; touched: Set<string> | undefined }
-const cache = new Map<string, CacheEntry>()
+/** The bulk answer is for one whole-tree run, where nothing changes underneath it. */
+const BULK_CACHE_MS = 30_000
+
+type State = { singles: number; bulk?: { at: number; touched: Set<string> | undefined } }
+const states = new Map<string, State>()
 
 function git(root: string, args: string[]): string {
   return execFileSync('git', ['-C', root, ...args], {
     encoding: 'utf8',
     timeout: GIT_TIMEOUT_MS,
     stdio: ['ignore', 'pipe', 'ignore'],
-    maxBuffer: 32 * 1024 * 1024,
+    maxBuffer: 64 * 1024 * 1024,
   })
 }
 
-function read(root: string): Set<string> | undefined {
+function bulkRead(root: string): Set<string> | undefined {
   try {
     const changed = git(root, ['diff', '--name-only', 'HEAD'])
     const untracked = git(root, ['ls-files', '--others', '--exclude-standard'])
@@ -36,16 +44,41 @@ function read(root: string): Set<string> | undefined {
   }
 }
 
-/** `undefined` when git cannot answer — no repo, no commits, no git. */
-export function touchedFiles(root: string, now = Date.now()): Set<string> | undefined {
-  const cached = cache.get(root)
-  if (cached !== undefined && now - cached.at < CACHE_MS) return cached.touched
+/** One path: `--porcelain` reports a modification and an untracked file alike. */
+function singleRead(root: string, key: string): boolean | undefined {
+  try {
+    return git(root, ['status', '--porcelain', '--untracked-files=all', '--', key]).trim() !== ''
+  } catch {
+    return undefined
+  }
+}
 
-  const touched = read(root)
-  cache.set(root, { at: now, touched })
-  return touched
+function stateFor(root: string): State {
+  const existing = states.get(root)
+  if (existing !== undefined) return existing
+  const created: State = { singles: 0 }
+  states.set(root, created)
+  return created
+}
+
+/** `undefined` when git cannot answer — no repo, no commits, no git on PATH. */
+export function isTouched(root: string, key: string, now = Date.now()): boolean | undefined {
+  const state = stateFor(root)
+
+  if (state.bulk !== undefined && now - state.bulk.at < BULK_CACHE_MS) {
+    return state.bulk.touched === undefined ? undefined : state.bulk.touched.has(key)
+  }
+
+  if (state.singles < SINGLE_PATH_BUDGET) {
+    state.singles += 1
+    return singleRead(root, key)
+  }
+
+  const touched = bulkRead(root)
+  state.bulk = { at: now, touched }
+  return touched === undefined ? undefined : touched.has(key)
 }
 
 export function clearTouchedCache(): void {
-  cache.clear()
+  states.clear()
 }

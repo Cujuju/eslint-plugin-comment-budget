@@ -2,7 +2,7 @@ import { dirname, relative, sep } from 'node:path';
 import { analyze } from "./analyze.js";
 import { budgetFor } from "./baseline.js";
 import { policyFrom } from "./policy.js";
-import { touchedFiles } from "./touched.js";
+import { isTouched } from "./touched.js";
 export const OPTIONS_SCHEMA = [
     {
         type: 'object',
@@ -24,7 +24,7 @@ export function resolve(context) {
         root,
         policy: policyFrom(budget),
         key: relative(root, context.filename).split(sep).join('/'),
-        touched: options.touched === undefined ? touchedFiles(root) : new Set(options.touched),
+        touched: options.touched,
     };
 }
 /**
@@ -35,7 +35,8 @@ export function resolve(context) {
 export function isExempt(resolved) {
     if (!resolved.budget.exempt.includes(resolved.key))
         return false;
-    return resolved.touched === undefined ? true : !resolved.touched.has(resolved.key);
+    const touched = resolved.touched === undefined ? isTouched(resolved.root, resolved.key) : resolved.touched.includes(resolved.key);
+    return touched !== true;
 }
 export function violationsOf(context, resolved) {
     const source = context.sourceCode;

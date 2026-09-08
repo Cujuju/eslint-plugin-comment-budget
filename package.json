@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-comment-budget",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Cap a comment block at N words and keep decision-record prose out of the source.",
   "license": "MIT",
   "type": "module",

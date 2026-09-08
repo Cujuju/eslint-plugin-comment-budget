@@ -3,7 +3,7 @@ import type { Rule } from 'eslint'
 import { analyze, type CommentNode, type Violation } from './analyze.ts'
 import { budgetFor, type Budget } from './baseline.ts'
 import { policyFrom, type Policy } from './policy.ts'
-import { touchedFiles } from './touched.ts'
+import { isTouched } from './touched.ts'
 
 /** Tests inject these; a real run walks up for the budget and asks git. */
 export type RuleOptions = { budget?: Budget; root?: string; touched?: string[] }
@@ -20,7 +20,7 @@ export const OPTIONS_SCHEMA = [
   },
 ]
 
-type Resolved = { budget: Budget; root: string; policy: Policy; key: string; touched: Set<string> | undefined }
+type Resolved = { budget: Budget; root: string; policy: Policy; key: string; touched?: string[] }
 
 export function resolve(context: Rule.RuleContext): Resolved {
   const options = (context.options[0] as RuleOptions | undefined) ?? {}
@@ -32,7 +32,7 @@ export function resolve(context: Rule.RuleContext): Resolved {
     root,
     policy: policyFrom(budget),
     key: relative(root, context.filename).split(sep).join('/'),
-    touched: options.touched === undefined ? touchedFiles(root) : new Set(options.touched),
+    touched: options.touched,
   }
 }
 
@@ -43,7 +43,9 @@ export function resolve(context: Rule.RuleContext): Resolved {
  */
 export function isExempt(resolved: Resolved): boolean {
   if (!resolved.budget.exempt.includes(resolved.key)) return false
-  return resolved.touched === undefined ? true : !resolved.touched.has(resolved.key)
+  const touched =
+    resolved.touched === undefined ? isTouched(resolved.root, resolved.key) : resolved.touched.includes(resolved.key)
+  return touched !== true
 }
 
 export function violationsOf(context: Rule.RuleContext, resolved: Resolved): Violation[] {

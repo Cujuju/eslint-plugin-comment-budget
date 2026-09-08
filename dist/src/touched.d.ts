@@ -1,3 +1,3 @@
-/** `undefined` when git cannot answer — no repo, no commits, no git. */
-export declare function touchedFiles(root: string, now?: number): Set<string> | undefined;
+/** `undefined` when git cannot answer — no repo, no commits, no git on PATH. */
+export declare function isTouched(root: string, key: string, now?: number): boolean | undefined;
 export declare function clearTouchedCache(): void;

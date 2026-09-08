@@ -31,7 +31,7 @@ type Resolved = {
     root: string;
     policy: Policy;
     key: string;
-    touched: Set<string> | undefined;
+    touched?: string[];
 };
 export declare function resolve(context: Rule.RuleContext): Resolved;
 /**
