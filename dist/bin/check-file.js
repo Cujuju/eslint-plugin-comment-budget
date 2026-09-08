@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
-import { basename, isAbsolute, resolve } from 'node:path';
-import { analyze, COMMENT_WORD_CAP } from "../src/analyze.js";
+import { basename, dirname, isAbsolute, resolve } from 'node:path';
+import { analyze } from "../src/analyze.js";
+import { budgetFor } from "../src/baseline.js";
 import { commentsOf } from "../src/comments.js";
+import { policyFrom } from "../src/policy.js";
 import { REDIRECT } from "../src/redirect.js";
 import { isLintedFile } from "../src/targets.js";
 /**
@@ -11,11 +13,12 @@ import { isLintedFile } from "../src/targets.js";
  */
 function report(path) {
     const absolute = isAbsolute(path) ? path : resolve(process.cwd(), path);
-    if (!isLintedFile(basename(absolute)))
+    const policy = policyFrom(budgetFor(dirname(absolute)).budget);
+    if (!isLintedFile(basename(absolute), policy))
         return [];
     const source = readFileSync(absolute, 'utf8');
-    return analyze(source, commentsOf(source, absolute)).map((violation) => violation.kind === 'over-cap'
-        ? `${path}:${violation.line} — ${violation.words} words, cap is ${COMMENT_WORD_CAP}.`
+    return analyze(source, commentsOf(source, absolute), policy).map((violation) => violation.kind === 'over-cap'
+        ? `${path}:${violation.line} — ${violation.words} words, cap is ${policy.wordCap}.`
         : `${path}:${violation.line} — carries ${violation.label}.`);
 }
 /** A PostToolUse hook hands the edited path on stdin; a shell hands it on argv. */

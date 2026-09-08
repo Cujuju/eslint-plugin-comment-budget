@@ -12,7 +12,7 @@ next reader trusts it anyway.
 Not on npm. Consume it straight from GitHub:
 
 ```sh
-pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v1.1.0
+pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.0.0
 ```
 
 It builds itself on install (`prepare` runs `tsc`), so nothing is checked in
@@ -101,7 +101,7 @@ arguments:
 
 | | |
 |---|---|
-| over-cap | a comment block over 30 words |
+| over-cap | a comment block over the word cap |
 | iso-date | `2019-03-14` — a dated record |
 | owner | an attributed decision (`owner, 2019-04-02: "…"`) |
 | history | `used to be`, `superseded`, `rejected:` |
@@ -120,12 +120,37 @@ rather than as evidence.
 
 ## Configuration
 
+Policy lives in `.comment-budget.json`, beside the exemption list, so the ESLint
+rule and the CLI read one source and cannot disagree. Every field is optional.
+
+```json
+{
+  "wordCap": 30,
+  "patterns": ["iso-date", "owner", "history", "measurement", "was-now", "digit-row"],
+  "ignore": ["**/node_modules/**", "**/dist/**", "**/vendor/**", "**/.*/**", "**/*.d.ts"],
+  "linted": ["**/*.ts", "**/*.tsx"],
+  "exempt": ["src/legacy.ts"]
+}
+```
+
+| | |
+|---|---|
+| `wordCap` | words allowed in one comment block. Default 30. |
+| `patterns` | which banned patterns run. Default: all of them. `[]` disables the lot and leaves only the cap. |
+| `ignore` | directories and suffixes the budget never covers. `**/name/**` and `**/*.ext` forms. |
+| `linted` | which files it covers. `**/*.ext` form. |
+| `exempt` | files that predate adoption. Written by `comment-budget-seed`. |
+
+`comment-budget-seed` rewrites `exempt` and hands the rest of the file back
+untouched.
+
 | | |
 |---|---|
 | `COMMENT_BUDGET_REDIRECT` | where the prose should go, named in every message. Defaults to "the commit message or a decision record". |
 
-The word cap is 30 and is not configurable, on purpose: a cap you can raise is
-a cap you will raise.
+A word on `wordCap`: pick one and leave it alone. A cap you renegotiate per
+comment is not a cap. But that is advice for your repo to take, not a decision
+this package gets to make for you.
 
 ## Why comments are extracted twice
 

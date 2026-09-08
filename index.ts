@@ -1,9 +1,10 @@
 import { commentBudget } from './src/rules/comment-budget.ts'
 
-export { IGNORED_GLOBS, LINTED_GLOBS } from './src/targets.ts'
+export { BANNED_PATTERN_IDS } from './src/patterns.ts'
+export { DEFAULT_IGNORED, DEFAULT_LINTED, DEFAULT_WORD_CAP, type Policy } from './src/policy.ts'
 
 export const rules = { 'comment-budget': commentBudget }
 
-export const plugin = { meta: { name: 'eslint-plugin-comment-budget', version: '1.1.0' }, rules }
+export const plugin = { meta: { name: 'eslint-plugin-comment-budget', version: '2.0.0' }, rules }
 
 export default plugin

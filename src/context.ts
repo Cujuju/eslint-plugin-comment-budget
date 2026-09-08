@@ -2,6 +2,7 @@ import { dirname, relative, sep } from 'node:path'
 import type { Rule } from 'eslint'
 import { analyze, type CommentNode, type Violation } from './analyze.ts'
 import { budgetFor, type Budget } from './baseline.ts'
+import { policyFrom, type Policy } from './policy.ts'
 
 /** Tests inject a budget and a root; a real run walks up for `.comment-budget.json`. */
 export type RuleOptions = { budget?: Budget; root?: string }
@@ -14,15 +15,20 @@ export const OPTIONS_SCHEMA = [
   },
 ]
 
-export function isExempt(context: Rule.RuleContext): boolean {
+type Resolved = { budget: Budget; root: string; policy: Policy }
+
+export function resolve(context: Rule.RuleContext): Resolved {
   const options = (context.options[0] as RuleOptions | undefined) ?? {}
   const found = budgetFor(dirname(context.filename))
   const budget = options.budget ?? found.budget
-  const root = options.root ?? found.root
-  return budget.exempt.includes(relative(root, context.filename).split(sep).join('/'))
+  return { budget, root: options.root ?? found.root, policy: policyFrom(budget) }
 }
 
-export function violationsOf(context: Rule.RuleContext): Violation[] {
+export function isExempt(context: Rule.RuleContext, resolved: Resolved): boolean {
+  return resolved.budget.exempt.includes(relative(resolved.root, context.filename).split(sep).join('/'))
+}
+
+export function violationsOf(context: Rule.RuleContext, resolved: Resolved): Violation[] {
   const source = context.sourceCode
-  return analyze(source.getText(), source.getAllComments() as unknown as CommentNode[])
+  return analyze(source.getText(), source.getAllComments() as unknown as CommentNode[], resolved.policy)
 }

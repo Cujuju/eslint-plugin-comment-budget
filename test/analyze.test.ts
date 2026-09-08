@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { parseForESLint } from '@typescript-eslint/parser'
-import { analyze, COMMENT_WORD_CAP, type CommentNode, type Violation } from '../src/analyze.ts'
+import { analyze, type CommentNode, type Violation } from '../src/analyze.ts'
+import { DEFAULT_WORD_CAP } from '../src/policy.ts'
 
 function run(source: string): Violation[] {
   const { ast } = parseForESLint(source, { comment: true, loc: true, range: true })
@@ -15,11 +16,11 @@ const words = (count: number): string => Array.from({ length: count }, (_, index
 
 describe('word cap', () => {
   it('passes a block exactly at the cap', () => {
-    expect(kinds(`// ${words(COMMENT_WORD_CAP)}\nexport const a = 1\n`)).toEqual([])
+    expect(kinds(`// ${words(DEFAULT_WORD_CAP)}\nexport const a = 1\n`)).toEqual([])
   })
 
   it('fails a block one word over the cap', () => {
-    expect(kinds(`// ${words(COMMENT_WORD_CAP + 1)}\nexport const a = 1\n`)).toEqual(['over-cap'])
+    expect(kinds(`// ${words(DEFAULT_WORD_CAP + 1)}\nexport const a = 1\n`)).toEqual(['over-cap'])
   })
 
   it('reports the word count it counted', () => {
@@ -89,4 +90,20 @@ describe('banned decision-record prose', () => {
   }
 })
 
+describe('policy', () => {
+  it('honours a repo word cap below the default', () => {
+    const source = `// one two three four five six seven eight\nexport const a = 1\n`
+    const { ast } = parseForESLint(source, { comment: true, loc: true, range: true })
+    const comments = (ast.comments ?? []) as unknown as CommentNode[]
+    expect(analyze(source, comments, { wordCap: 5 }).map((v) => v.kind)).toEqual(['over-cap'])
+    expect(analyze(source, comments, { wordCap: 50 })).toEqual([])
+  })
 
+  it('runs only the banned patterns the repo enabled', () => {
+    const source = `// Pinned at 4 until 2019-03-14, when the parser began tracking columns.\nexport const a = 1\n`
+    const { ast } = parseForESLint(source, { comment: true, loc: true, range: true })
+    const comments = (ast.comments ?? []) as unknown as CommentNode[]
+    expect(analyze(source, comments, { patterns: ['iso-date'] }).map((v) => v.kind)).toEqual(['banned:iso-date'])
+    expect(analyze(source, comments, { patterns: [] })).toEqual([])
+  })
+})

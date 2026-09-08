@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs'
-import { basename, isAbsolute, resolve } from 'node:path'
-import { analyze, COMMENT_WORD_CAP } from '../src/analyze.ts'
+import { basename, dirname, isAbsolute, resolve } from 'node:path'
+import { analyze } from '../src/analyze.ts'
+import { budgetFor } from '../src/baseline.ts'
 import { commentsOf } from '../src/comments.ts'
+import { policyFrom } from '../src/policy.ts'
 import { REDIRECT } from '../src/redirect.ts'
 import { isLintedFile } from '../src/targets.ts'
 
@@ -12,12 +14,13 @@ import { isLintedFile } from '../src/targets.ts'
  */
 function report(path: string): string[] {
   const absolute = isAbsolute(path) ? path : resolve(process.cwd(), path)
-  if (!isLintedFile(basename(absolute))) return []
+  const policy = policyFrom(budgetFor(dirname(absolute)).budget)
+  if (!isLintedFile(basename(absolute), policy)) return []
 
   const source = readFileSync(absolute, 'utf8')
-  return analyze(source, commentsOf(source, absolute)).map((violation) =>
+  return analyze(source, commentsOf(source, absolute), policy).map((violation) =>
     violation.kind === 'over-cap'
-      ? `${path}:${violation.line} — ${violation.words} words, cap is ${COMMENT_WORD_CAP}.`
+      ? `${path}:${violation.line} — ${violation.words} words, cap is ${policy.wordCap}.`
       : `${path}:${violation.line} — carries ${violation.label}.`,
   )
 }

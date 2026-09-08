@@ -1,5 +1,4 @@
-/** Word cap for one comment block, from code_style.md. */
-export declare const COMMENT_WORD_CAP = 30;
+import { type PolicyInput } from './policy.ts';
 export type ViolationKind = 'over-cap' | `banned:${string}`;
 export type Violation = {
     kind: ViolationKind;
@@ -24,16 +23,6 @@ export type CommentNode = {
         end: Loc;
     };
 };
-type BannedPattern = {
-    id: string;
-    label: string;
-    test: (text: string) => boolean;
-};
-/**
- * Prose that belongs in a decision record, not beside the code: dates, who
- * decided, the shape before this one, and the figures that settled it.
- */
-export declare const BANNED_PATTERNS: BannedPattern[];
 export declare function countWords(text: string): number;
 type Block = {
     comments: CommentNode[];
@@ -44,5 +33,5 @@ type Block = {
  * line with code stands alone, so annotating N fields is not one N-word block.
  */
 export declare function groupBlocks(comments: CommentNode[], lines: string[]): Block[];
-export declare function analyze(source: string, comments: CommentNode[]): Violation[];
+export declare function analyze(source: string, comments: CommentNode[], input?: PolicyInput): Violation[];
 export {};

@@ -1,4 +1,5 @@
-export type Budget = {
+import type { PolicyInput } from './policy.ts';
+export type Budget = PolicyInput & {
     /**
      * Files that predate the rule, repo-relative. A whole-tree run skips them;
      * touching one does not. Cleaning a file means deleting its line here.

@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint';
 import { type Violation } from './analyze.ts';
 import { type Budget } from './baseline.ts';
+import { type Policy } from './policy.ts';
 /** Tests inject a budget and a root; a real run walks up for `.comment-budget.json`. */
 export type RuleOptions = {
     budget?: Budget;
@@ -18,5 +19,12 @@ export declare const OPTIONS_SCHEMA: {
     };
     additionalProperties: boolean;
 }[];
-export declare function isExempt(context: Rule.RuleContext): boolean;
-export declare function violationsOf(context: Rule.RuleContext): Violation[];
+type Resolved = {
+    budget: Budget;
+    root: string;
+    policy: Policy;
+};
+export declare function resolve(context: Rule.RuleContext): Resolved;
+export declare function isExempt(context: Rule.RuleContext, resolved: Resolved): boolean;
+export declare function violationsOf(context: Rule.RuleContext, resolved: Resolved): Violation[];
+export {};
