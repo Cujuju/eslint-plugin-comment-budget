@@ -19,7 +19,7 @@ export const commentBudget: Rule.RuleModule = {
     return {
       'Program:exit'(): void {
         const resolved = resolve(context)
-        if (isExempt(context, resolved)) return
+        if (isExempt(resolved)) return
         const redirect = REDIRECT
         const cap = String(resolved.policy.wordCap)
 

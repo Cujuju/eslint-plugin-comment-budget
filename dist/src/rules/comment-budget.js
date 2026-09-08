@@ -16,7 +16,7 @@ export const commentBudget = {
         return {
             'Program:exit'() {
                 const resolved = resolve(context);
-                if (isExempt(context, resolved))
+                if (isExempt(resolved))
                     return;
                 const redirect = REDIRECT;
                 const cap = String(resolved.policy.wordCap);

@@ -3,29 +3,47 @@ import type { Rule } from 'eslint'
 import { analyze, type CommentNode, type Violation } from './analyze.ts'
 import { budgetFor, type Budget } from './baseline.ts'
 import { policyFrom, type Policy } from './policy.ts'
+import { touchedFiles } from './touched.ts'
 
-/** Tests inject a budget and a root; a real run walks up for `.comment-budget.json`. */
-export type RuleOptions = { budget?: Budget; root?: string }
+/** Tests inject these; a real run walks up for the budget and asks git. */
+export type RuleOptions = { budget?: Budget; root?: string; touched?: string[] }
 
 export const OPTIONS_SCHEMA = [
   {
     type: 'object',
-    properties: { budget: { type: 'object' }, root: { type: 'string' } },
+    properties: {
+      budget: { type: 'object' },
+      root: { type: 'string' },
+      touched: { type: 'array', items: { type: 'string' } },
+    },
     additionalProperties: false,
   },
 ]
 
-type Resolved = { budget: Budget; root: string; policy: Policy }
+type Resolved = { budget: Budget; root: string; policy: Policy; key: string; touched: Set<string> | undefined }
 
 export function resolve(context: Rule.RuleContext): Resolved {
   const options = (context.options[0] as RuleOptions | undefined) ?? {}
   const found = budgetFor(dirname(context.filename))
   const budget = options.budget ?? found.budget
-  return { budget, root: options.root ?? found.root, policy: policyFrom(budget) }
+  const root = options.root ?? found.root
+  return {
+    budget,
+    root,
+    policy: policyFrom(budget),
+    key: relative(root, context.filename).split(sep).join('/'),
+    touched: options.touched === undefined ? touchedFiles(root) : new Set(options.touched),
+  }
 }
 
-export function isExempt(context: Rule.RuleContext, resolved: Resolved): boolean {
-  return resolved.budget.exempt.includes(relative(resolved.root, context.filename).split(sep).join('/'))
+/**
+ * An exemption is forgiveness until you touch the file. Editing one withdraws
+ * it, so the cap applies in the editor rather than at commit time. When git
+ * cannot answer, the exemption stands.
+ */
+export function isExempt(resolved: Resolved): boolean {
+  if (!resolved.budget.exempt.includes(resolved.key)) return false
+  return resolved.touched === undefined ? true : !resolved.touched.has(resolved.key)
 }
 
 export function violationsOf(context: Rule.RuleContext, resolved: Resolved): Violation[] {

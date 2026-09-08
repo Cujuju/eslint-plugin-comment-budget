@@ -12,7 +12,7 @@ next reader trusts it anyway.
 Not on npm. Consume it straight from GitHub:
 
 ```sh
-pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.1.0
+pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.2.0
 ```
 
 It builds itself on install (`prepare` runs `tsc`), so nothing is checked in
@@ -45,11 +45,16 @@ pnpm exec comment-budget-seed
 
 That writes `.comment-budget.json` — every file that does not yet meet the cap.
 Check it in. A whole-tree `eslint .` then passes, because those files are
-forgiven.
+forgiven — **until you touch one.**
 
-**Buy once, cry once.** The forgiveness is only for files nobody touches. Wire
-`comment-budget-check` into anything that knows a file was edited, and it
-enforces the cap in full, ignoring the exemption list:
+The rule asks git which files differ from `HEAD` (staged, unstaged, or
+untracked) and withdraws the exemption from those, so the cap turns back on in
+your editor the moment you edit a legacy file, not at commit time. Where git
+cannot answer — no repo, no commits, no git on PATH — every exemption stands.
+
+**Buy once, cry once.** Wire `comment-budget-check` into your hooks as well —
+it enforces the cap in full and consults no exemption list at all, which is what
+you want on a commit gate:
 
 ```sh
 comment-budget-check path/to/file.ts     # exits 2 and explains, or exits 0
@@ -65,11 +70,13 @@ git config core.hooksPath .githooks
 
 ```bash
 # .githooks/pre-commit
+# Invoke through `node` rather than node_modules/.bin: pnpm writes a POSIX
+# symlink on Linux and a .CMD on Windows, and neither is visible to the other.
 mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACMR -- '*.ts' '*.tsx')
 status=0
 for path in "${staged[@]}"; do
   [ -f "$path" ] || continue
-  node_modules/.bin/comment-budget-check "$path" || status=1
+  node node_modules/eslint-plugin-comment-budget/dist/bin/check-file.js "$path" || status=1
 done
 exit $status
 ```
@@ -90,7 +97,7 @@ arguments:
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
-        "hooks": [{ "type": "command", "command": "node_modules/.bin/comment-budget-check", "timeout": 15 }]
+        "hooks": [{ "type": "command", "command": "node node_modules/eslint-plugin-comment-budget/dist/bin/check-file.js", "timeout": 15 }]
       }
     ]
   }

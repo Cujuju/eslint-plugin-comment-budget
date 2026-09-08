@@ -2,10 +2,15 @@ import { dirname, relative, sep } from 'node:path';
 import { analyze } from "./analyze.js";
 import { budgetFor } from "./baseline.js";
 import { policyFrom } from "./policy.js";
+import { touchedFiles } from "./touched.js";
 export const OPTIONS_SCHEMA = [
     {
         type: 'object',
-        properties: { budget: { type: 'object' }, root: { type: 'string' } },
+        properties: {
+            budget: { type: 'object' },
+            root: { type: 'string' },
+            touched: { type: 'array', items: { type: 'string' } },
+        },
         additionalProperties: false,
     },
 ];
@@ -13,10 +18,24 @@ export function resolve(context) {
     const options = context.options[0] ?? {};
     const found = budgetFor(dirname(context.filename));
     const budget = options.budget ?? found.budget;
-    return { budget, root: options.root ?? found.root, policy: policyFrom(budget) };
+    const root = options.root ?? found.root;
+    return {
+        budget,
+        root,
+        policy: policyFrom(budget),
+        key: relative(root, context.filename).split(sep).join('/'),
+        touched: options.touched === undefined ? touchedFiles(root) : new Set(options.touched),
+    };
 }
-export function isExempt(context, resolved) {
-    return resolved.budget.exempt.includes(relative(resolved.root, context.filename).split(sep).join('/'));
+/**
+ * An exemption is forgiveness until you touch the file. Editing one withdraws
+ * it, so the cap applies in the editor rather than at commit time. When git
+ * cannot answer, the exemption stands.
+ */
+export function isExempt(resolved) {
+    if (!resolved.budget.exempt.includes(resolved.key))
+        return false;
+    return resolved.touched === undefined ? true : !resolved.touched.has(resolved.key);
 }
 export function violationsOf(context, resolved) {
     const source = context.sourceCode;

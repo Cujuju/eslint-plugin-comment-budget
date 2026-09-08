@@ -13,7 +13,7 @@ const LONG = `// ${Array.from({ length: 40 }, (_, index) => `w${index}`).join(' 
 const DATED = '// Pinned at 4 until 2019-03-14, when the parser began tracking columns.'
 const CODE = 'export const a = 1'
 
-const budget = (exempt: string[]) => ({ budget: { exempt }, root: '/repo' })
+const budget = (exempt: string[], touched: string[] = []) => ({ budget: { exempt }, root: '/repo', touched })
 
 describe('comment-budget', () => {
   it('reports an over-cap block and a banned pattern', () => {
@@ -42,6 +42,26 @@ describe('comment-budget', () => {
         { code: `${LONG}\n${DATED}\n${CODE}\n`, filename: '/repo/src/legacy.ts', options: [budget(['src/legacy.ts'])] },
       ],
       invalid: [],
+    })
+  })
+
+  it('withdraws the exemption once the file is touched', () => {
+    tester.run('comment-budget', commentBudget, {
+      valid: [
+        {
+          code: `${LONG}\n${CODE}\n`,
+          filename: '/repo/src/legacy.ts',
+          options: [budget(['src/legacy.ts'], [])],
+        },
+      ],
+      invalid: [
+        {
+          code: `${LONG}\n${CODE}\n`,
+          filename: '/repo/src/legacy.ts',
+          options: [budget(['src/legacy.ts'], ['src/legacy.ts'])],
+          errors: [{ messageId: 'overCap' }],
+        },
+      ],
     })
   })
 
