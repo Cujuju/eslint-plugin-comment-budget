@@ -1,0 +1,35 @@
+{
+  "name": "eslint-plugin-comment-budget",
+  "version": "1.1.0",
+  "description": "Cap a comment block at N words and keep decision-record prose out of the source.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "bin": {
+    "comment-budget-check": "./dist/bin/check-file.js",
+    "comment-budget-seed": "./dist/bin/seed-budget.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "eslint": ">=9"
+  },
+  "dependencies": {
+    "typescript": ">=5.7 <7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@typescript-eslint/parser": "^8.69.0",
+    "eslint": "^10.10.0",
+    "typescript-eslint": "^8.69.0",
+    "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
