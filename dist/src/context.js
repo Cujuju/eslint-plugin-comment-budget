@@ -1,8 +1,8 @@
 import { dirname, relative, sep } from 'node:path';
-import { analyze } from "./analyze.js";
-import { budgetFor } from "./baseline.js";
-import { policyFrom } from "./policy.js";
-import { isTouched } from "./touched.js";
+import { analyze, isProseComment } from './analyze.js';
+import { budgetFor } from './baseline.js';
+import { policyFrom } from './policy.js';
+import { isTouched } from './touched.js';
 export const OPTIONS_SCHEMA = [
     {
         type: 'object',
@@ -28,9 +28,8 @@ export function resolve(context) {
     };
 }
 /**
- * An exemption is forgiveness until you touch the file. Editing one withdraws
- * it, so the cap applies in the editor rather than at commit time. When git
- * cannot answer, the exemption stands.
+ * An exemption lasts until you touch the file: editing withdraws it, so the
+ * cap applies in the editor, not at commit. If git cannot answer, it stands.
  */
 export function isExempt(resolved) {
     if (!resolved.budget.exempt.includes(resolved.key))
@@ -40,5 +39,5 @@ export function isExempt(resolved) {
 }
 export function violationsOf(context, resolved) {
     const source = context.sourceCode;
-    return analyze(source.getText(), source.getAllComments(), resolved.policy);
+    return analyze(source.getText(), source.getAllComments().filter(isProseComment), resolved.policy);
 }

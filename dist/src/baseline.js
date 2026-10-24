@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, parse } from 'node:path';
-import { BUDGET_FILE } from "./targets.js";
+import { BUDGET_FILE } from './targets.js';
 export const EMPTY_BUDGET = { exempt: [] };
 const cache = new Map();
 /** The budget sits at the repo root; a linter may be pointed anywhere below it. */

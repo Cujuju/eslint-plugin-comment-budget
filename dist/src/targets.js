@@ -1,7 +1,7 @@
 import { readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { matcherFor } from "./glob.js";
-import { policyFrom } from "./policy.js";
+import { matcherFor } from './glob.js';
+import { policyFrom } from './policy.js';
 export const BUDGET_FILE = '.comment-budget.json';
 function posix(path) {
     return path.split(sep).join('/');

@@ -9,7 +9,7 @@ import { redirectOf } from '../src/redirect.ts'
 import { isLintedPath } from '../src/targets.ts'
 
 /**
- * One file, no eslint startup and no exemption list: whoever touches a file
+ * One file, no linter startup and no exemption list: whoever touches a file
  * brings it to the cap. Prints nothing when the file is clean.
  */
 let redirect = ''

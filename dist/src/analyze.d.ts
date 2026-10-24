@@ -23,6 +23,12 @@ export type CommentNode = {
         end: Loc;
     };
 };
+/** Line and Block comments; a linter's "Shebang" (`#!` line) is not prose. */
+export declare const isProseComment: <C extends {
+    type: string;
+}>(comment: C) => comment is C & {
+    type: CommentNode['type'];
+};
 export declare function countWords(text: string): number;
 type Block = {
     comments: CommentNode[];

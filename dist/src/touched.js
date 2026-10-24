@@ -7,7 +7,7 @@ const GIT_TIMEOUT_MS = 10_000;
 /**
  * Asking about one file costs a stat; asking about the tree costs a full walk,
  * which on a network or drive-mounted checkout is seconds. An editor asks about
- * a handful of files and should pay the former. `eslint .` asks about hundreds
+ * a handful of files and should pay the former. `oxlint` asks about hundreds
  * and should pay the latter once. Switch over when the singles stop being cheaper.
  */
 const SINGLE_PATH_BUDGET = 25;

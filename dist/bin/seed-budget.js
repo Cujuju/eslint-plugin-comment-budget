@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { analyze } from "../src/analyze.js";
-import { commentsOf } from "../src/comments.js";
-import { policyFrom } from "../src/policy.js";
-import { BUDGET_FILE, findLintedFiles } from "../src/targets.js";
+import { analyze } from '../src/analyze.js';
+import { commentsOf } from '../src/comments.js';
+import { policyFrom } from '../src/policy.js';
+import { BUDGET_FILE, findLintedFiles } from '../src/targets.js';
 /**
  * Rewrites the exemption list: every file that does not yet meet the cap. The
  * repo's policy in the same file is read and written back untouched.

@@ -1,8 +1,8 @@
-import type { Rule } from 'eslint'
+import type { Rule } from '@oxlint/plugins'
 import { isExempt, OPTIONS_SCHEMA, resolve, violationsOf } from '../context.ts'
 import { redirectOf } from '../redirect.ts'
 
-export const commentBudget: Rule.RuleModule = {
+export const commentBudget: Rule = {
   meta: {
     type: 'suggestion',
     docs: {

@@ -23,7 +23,11 @@ export type CommentNode = {
   loc: { start: Loc; end: Loc }
 }
 
-/** ESLint hands back the comment body already; only the JSDoc gutter is left. */
+/** Line and Block comments; a linter's "Shebang" (`#!` line) is not prose. */
+export const isProseComment = <C extends { type: string }>(comment: C): comment is C & { type: CommentNode['type'] } =>
+  comment.type === 'Line' || comment.type === 'Block'
+
+/** The parser hands back the comment body already; only the JSDoc gutter is left. */
 function stripMarkers(comment: CommentNode): string {
   if (comment.type === 'Line') return comment.value
   return comment.value

@@ -1,13 +1,12 @@
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { RuleTester } from 'eslint'
-import { parser } from 'typescript-eslint'
+import { RuleTester } from 'oxlint/plugins-dev'
 import { describe, expect, it } from 'vitest'
 import { findBudgetFile } from '../src/baseline.ts'
 import { commentBudget } from '../src/rules/comment-budget.ts'
 
-const tester = new RuleTester({ languageOptions: { parser } })
+const tester = new RuleTester()
 
 const LONG = `// ${Array.from({ length: 40 }, (_, index) => `w${index}`).join(' ')}`
 const DATED = '// Pinned at 4 until 2019-03-14, when the parser began tracking columns.'
@@ -84,7 +83,8 @@ describe('comment-budget', () => {
       valid: [],
       invalid: [
         {
-          code: `${LONG}\n${CODE}\n\n${DATED}\n${CODE}\n`,
+          // Distinct names: oxlint rejects a redeclared `a` as a parse error.
+          code: `${LONG}\n${CODE}\n\n${DATED}\nexport const b = 1\n`,
           filename: '/repo/src/a.ts',
           options: [budget([])],
           errors: [{ messageId: 'overCap' }, { messageId: 'banned' }],

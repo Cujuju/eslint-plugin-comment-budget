@@ -12,27 +12,21 @@ next reader trusts it anyway.
 Not on npm. Consume it straight from GitHub:
 
 ```sh
-pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.4.0
+pnpm add -D github:Cujuju/eslint-plugin-comment-budget#v2.5.0
 ```
 
-It builds itself on install (`prepare` runs `tsc`), so nothing is checked in
-compiled.
+`dist/` is committed, so nothing builds on install (see below).
 
-## Use it as an ESLint rule
+## Use it as an oxlint rule
 
-```js
-// eslint.config.mjs
-import tseslint from 'typescript-eslint'
-import budget from 'eslint-plugin-comment-budget'
+It is an ESLint-format plugin, loaded by oxlint as a JS plugin. ESLint is not needed.
 
-export default [
-  {
-    files: ['**/*.ts', '**/*.tsx'],
-    languageOptions: { parser: tseslint.parser },
-    plugins: { budget },
-    rules: { 'budget/comment-budget': 'error' },
-  },
-]
+```json
+// .oxlintrc.json
+{
+  "jsPlugins": [{ "name": "budget", "specifier": "eslint-plugin-comment-budget" }],
+  "overrides": [{ "files": ["**/*.{ts,tsx}"], "rules": { "budget/comment-budget": "error" } }]
+}
 ```
 
 ## Adopt it on a tree that has never had it
@@ -44,7 +38,7 @@ pnpm exec comment-budget-seed
 ```
 
 That writes `.comment-budget.json` — every file that does not yet meet the cap.
-Check it in. A whole-tree `eslint .` then passes, because those files are
+Check it in. A whole-tree `oxlint` then passes, because those files are
 forgiven — **until you touch one.**
 
 The rule asks git which files differ from `HEAD` (staged, unstaged, or
@@ -83,7 +77,7 @@ exit $status
 
 ### CI
 
-Run `eslint .` *and* `comment-budget-check` over the files the branch changed.
+Run `oxlint` *and* `comment-budget-check` over the files the branch changed.
 Without the second step, a bypassed pre-commit hides behind the exemption list.
 
 ### Claude Code
@@ -127,7 +121,7 @@ rather than as evidence.
 
 ## Configuration
 
-Policy lives in `.comment-budget.json`, beside the exemption list, so the ESLint
+Policy lives in `.comment-budget.json`, beside the exemption list, so the lint
 rule and the CLI read one source and cannot disagree. Every field is optional.
 
 ```json
@@ -162,12 +156,11 @@ this package gets to make for you.
 
 ## Why comments are extracted twice
 
-The ESLint rule reads comments from ESLint. Everything off-line —
-`comment-budget-check`, the seeder — reads them through the TypeScript compiler,
-because importing the ESLint parser costs seconds and `tsc` costs milliseconds,
-which is the difference between a hook you keep and one you disable.
-`test/comments.test.ts` holds the two extractors to the same answer on every
-file in the repo.
+The lint rule reads the comments oxlint hands it. Everything off-line —
+`comment-budget-check`, the seeder — reads them through oxc-parser, the parser
+oxlint itself runs, so a hook costs milliseconds and no linter startup.
+`test/comments.test.ts` holds the two to the same answer on every file in the
+repo. A `#!` line is not prose: the rule skips oxlint's "Shebang" comment.
 
 ## Why `dist/` is committed
 

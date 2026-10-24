@@ -1,6 +1,8 @@
-import { BANNED_PATTERNS } from "./patterns.js";
-import { policyFrom } from "./policy.js";
-/** ESLint hands back the comment body already; only the JSDoc gutter is left. */
+import { BANNED_PATTERNS } from './patterns.js';
+import { policyFrom } from './policy.js';
+/** Line and Block comments; a linter's "Shebang" (`#!` line) is not prose. */
+export const isProseComment = (comment) => comment.type === 'Line' || comment.type === 'Block';
+/** The parser hands back the comment body already; only the JSDoc gutter is left. */
 function stripMarkers(comment) {
     if (comment.type === 'Line')
         return comment.value;

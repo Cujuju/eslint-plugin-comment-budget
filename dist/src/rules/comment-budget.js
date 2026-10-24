@@ -1,5 +1,5 @@
-import { isExempt, OPTIONS_SCHEMA, resolve, violationsOf } from "../context.js";
-import { redirectOf } from "../redirect.js";
+import { isExempt, OPTIONS_SCHEMA, resolve, violationsOf } from '../context.js';
+import { redirectOf } from '../redirect.js';
 export const commentBudget = {
     meta: {
         type: 'suggestion',

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
-import { analyze } from "../src/analyze.js";
-import { budgetFor } from "../src/baseline.js";
-import { commentsOf } from "../src/comments.js";
-import { policyFrom } from "../src/policy.js";
-import { redirectOf } from "../src/redirect.js";
-import { isLintedPath } from "../src/targets.js";
+import { analyze } from '../src/analyze.js';
+import { budgetFor } from '../src/baseline.js';
+import { commentsOf } from '../src/comments.js';
+import { policyFrom } from '../src/policy.js';
+import { redirectOf } from '../src/redirect.js';
+import { isLintedPath } from '../src/targets.js';
 /**
- * One file, no eslint startup and no exemption list: whoever touches a file
+ * One file, no linter startup and no exemption list: whoever touches a file
  * brings it to the cap. Prints nothing when the file is clean.
  */
 let redirect = '';

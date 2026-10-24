@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { parseForESLint } from '@typescript-eslint/parser'
-import { analyze, type CommentNode, type Violation } from '../src/analyze.ts'
+import { analyze, type Violation } from '../src/analyze.ts'
+import { commentsOf } from '../src/comments.ts'
 import { DEFAULT_WORD_CAP } from '../src/policy.ts'
 
 function run(source: string): Violation[] {
-  const { ast } = parseForESLint(source, { comment: true, loc: true, range: true })
-  return analyze(source, (ast.comments ?? []) as unknown as CommentNode[])
+  return analyze(source, commentsOf(source, 'probe.ts'))
 }
 
 function kinds(source: string): string[] {
@@ -93,16 +92,14 @@ describe('banned decision-record prose', () => {
 describe('policy', () => {
   it('honours a repo word cap below the default', () => {
     const source = `// one two three four five six seven eight\nexport const a = 1\n`
-    const { ast } = parseForESLint(source, { comment: true, loc: true, range: true })
-    const comments = (ast.comments ?? []) as unknown as CommentNode[]
+    const comments = commentsOf(source, 'probe.ts')
     expect(analyze(source, comments, { wordCap: 5 }).map((v) => v.kind)).toEqual(['over-cap'])
     expect(analyze(source, comments, { wordCap: 50 })).toEqual([])
   })
 
   it('runs only the banned patterns the repo enabled', () => {
     const source = `// Pinned at 4 until 2019-03-14, when the parser began tracking columns.\nexport const a = 1\n`
-    const { ast } = parseForESLint(source, { comment: true, loc: true, range: true })
-    const comments = (ast.comments ?? []) as unknown as CommentNode[]
+    const comments = commentsOf(source, 'probe.ts')
     expect(analyze(source, comments, { patterns: ['iso-date'] }).map((v) => v.kind)).toEqual(['banned:iso-date'])
     expect(analyze(source, comments, { patterns: [] })).toEqual([])
   })

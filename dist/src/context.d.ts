@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Context } from '@oxlint/plugins';
 import { type Violation } from './analyze.ts';
 import { type Budget } from './baseline.ts';
 import { type Policy } from './policy.ts';
@@ -33,12 +33,11 @@ type Resolved = {
     key: string;
     touched?: string[];
 };
-export declare function resolve(context: Rule.RuleContext): Resolved;
+export declare function resolve(context: Context): Resolved;
 /**
- * An exemption is forgiveness until you touch the file. Editing one withdraws
- * it, so the cap applies in the editor rather than at commit time. When git
- * cannot answer, the exemption stands.
+ * An exemption lasts until you touch the file: editing withdraws it, so the
+ * cap applies in the editor, not at commit. If git cannot answer, it stands.
  */
 export declare function isExempt(resolved: Resolved): boolean;
-export declare function violationsOf(context: Rule.RuleContext, resolved: Resolved): Violation[];
+export declare function violationsOf(context: Context, resolved: Resolved): Violation[];
 export {};

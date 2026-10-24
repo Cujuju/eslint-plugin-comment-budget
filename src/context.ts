@@ -1,6 +1,6 @@
 import { dirname, relative, sep } from 'node:path'
-import type { Rule } from 'eslint'
-import { analyze, type CommentNode, type Violation } from './analyze.ts'
+import type { Context } from '@oxlint/plugins'
+import { analyze, isProseComment, type CommentNode, type Violation } from './analyze.ts'
 import { budgetFor, type Budget } from './baseline.ts'
 import { policyFrom, type Policy } from './policy.ts'
 import { isTouched } from './touched.ts'
@@ -22,7 +22,7 @@ export const OPTIONS_SCHEMA = [
 
 type Resolved = { budget: Budget; root: string; policy: Policy; key: string; touched?: string[] }
 
-export function resolve(context: Rule.RuleContext): Resolved {
+export function resolve(context: Context): Resolved {
   const options = (context.options[0] as RuleOptions | undefined) ?? {}
   const found = budgetFor(dirname(context.filename))
   const budget = options.budget ?? found.budget
@@ -37,9 +37,8 @@ export function resolve(context: Rule.RuleContext): Resolved {
 }
 
 /**
- * An exemption is forgiveness until you touch the file. Editing one withdraws
- * it, so the cap applies in the editor rather than at commit time. When git
- * cannot answer, the exemption stands.
+ * An exemption lasts until you touch the file: editing withdraws it, so the
+ * cap applies in the editor, not at commit. If git cannot answer, it stands.
  */
 export function isExempt(resolved: Resolved): boolean {
   if (!resolved.budget.exempt.includes(resolved.key)) return false
@@ -48,7 +47,7 @@ export function isExempt(resolved: Resolved): boolean {
   return touched !== true
 }
 
-export function violationsOf(context: Rule.RuleContext, resolved: Resolved): Violation[] {
+export function violationsOf(context: Context, resolved: Resolved): Violation[] {
   const source = context.sourceCode
-  return analyze(source.getText(), source.getAllComments() as unknown as CommentNode[], resolved.policy)
+  return analyze(source.getText(), source.getAllComments().filter(isProseComment) as unknown as CommentNode[], resolved.policy)
 }

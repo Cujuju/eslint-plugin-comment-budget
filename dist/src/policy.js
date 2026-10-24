@@ -1,5 +1,5 @@
-import { BANNED_PATTERN_IDS } from "./patterns.js";
-import { DEFAULT_REDIRECT } from "./redirect.js";
+import { BANNED_PATTERN_IDS } from './patterns.js';
+import { DEFAULT_REDIRECT } from './redirect.js';
 /** A default, not a law: a repo that wants a different cap says so. */
 export const DEFAULT_WORD_CAP = 30;
 export const DEFAULT_IGNORED = [

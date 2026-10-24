@@ -1,45 +1,28 @@
-import ts from 'typescript';
+import { parseSync } from 'oxc-parser';
 /**
- * Off-line callers read comments from here: the ESLint parser costs seconds to
- * import, tsc milliseconds. `test/comments.test.ts` holds both to one answer.
+ * Off-line callers read comments from here. oxc-parser is the parser oxlint
+ * runs, so these are the comments the rule sees. `test/comments.test.ts` holds both to one answer.
  */
-const LINE_MARKER_LENGTH = 2;
-const BLOCK_MARKER_LENGTH = 2;
 export function commentsOf(source, path) {
-    const sourceFile = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, path.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
-    const found = [];
-    const seen = new Set();
-    const at = (position) => {
-        const { line, character } = ts.getLineAndCharacterOfPosition(sourceFile, position);
-        return { line: line + 1, column: character };
-    };
-    const take = (range) => {
-        if (seen.has(range.pos))
-            return;
-        seen.add(range.pos);
-        const isLine = range.kind === ts.SyntaxKind.SingleLineCommentTrivia;
-        found.push({
-            type: isLine ? 'Line' : 'Block',
-            value: source.slice(range.pos + LINE_MARKER_LENGTH, isLine ? range.end : range.end - BLOCK_MARKER_LENGTH),
-            loc: { start: at(range.pos), end: at(range.end) },
-        });
-    };
-    /**
-     * Every token, not every node: a comment before `import` or `}` is trivia of
-     * a keyword `forEachChild` skips. Trailing ranges catch same-line comments.
-     */
-    const collect = (node) => {
-        const children = node.getChildren(sourceFile);
-        if (children.length === 0) {
-            for (const range of ts.getLeadingCommentRanges(source, node.getFullStart()) ?? [])
-                take(range);
-            for (const range of ts.getTrailingCommentRanges(source, node.getEnd()) ?? [])
-                take(range);
-            return;
+    // oxc spans are UTF-16 offsets, as ESTree columns are.
+    const lineStarts = [0];
+    for (let i = source.indexOf('\n'); i !== -1; i = source.indexOf('\n', i + 1))
+        lineStarts.push(i + 1);
+    const at = (offset) => {
+        let low = 0;
+        let high = lineStarts.length - 1;
+        while (low < high) {
+            const mid = (low + high + 1) >> 1;
+            if (lineStarts[mid] <= offset)
+                low = mid;
+            else
+                high = mid - 1;
         }
-        for (const child of children)
-            collect(child);
+        return { line: low + 1, column: offset - lineStarts[low] };
     };
-    collect(sourceFile);
-    return found.sort((a, b) => a.loc.start.line - b.loc.start.line || a.loc.start.column - b.loc.start.column);
+    return parseSync(path, source).comments.map((comment) => ({
+        type: comment.type,
+        value: comment.value,
+        loc: { start: at(comment.start), end: at(comment.end) },
+    }));
 }

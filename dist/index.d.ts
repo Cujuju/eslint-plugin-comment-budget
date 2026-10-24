@@ -4,7 +4,7 @@ export { isTouched } from './src/touched.ts';
 export { DEFAULT_REDIRECT } from './src/redirect.ts';
 export { DEFAULT_IGNORED, DEFAULT_LINTED, DEFAULT_WORD_CAP, type Policy } from './src/policy.ts';
 export declare const rules: {
-    'comment-budget': import("eslint").Rule.RuleModule;
+    'comment-budget': import("@oxlint/plugins").Rule;
 };
 export declare const plugin: {
     meta: {
@@ -12,7 +12,7 @@ export declare const plugin: {
         version: string;
     };
     rules: {
-        'comment-budget': import("eslint").Rule.RuleModule;
+        'comment-budget': import("@oxlint/plugins").Rule;
     };
 };
 export default plugin;
